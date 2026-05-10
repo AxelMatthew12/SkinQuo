@@ -15,7 +15,7 @@ class HomeController extends Controller
     {
         // Ambil 8 artikel terbaru
         $articles = Article::where('is_published', true)
-                            ->latest('published_at')
+                            ->latest('created_at')
                             ->take(8)
                             ->get();
 
