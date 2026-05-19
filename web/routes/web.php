@@ -24,14 +24,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/skin-guide', [ArticleController::class, 'index'])->name('skin-guide.index');
 Route::get('/skin-guide/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
-
 Route::get('/products', function () {
     return DB::table('products')->get();
 });
 
 // ── Public Catalog / Produk ────────────────────────
 Route::get('/catalog', [ProductController::class, 'index'])->name('catalog.index');
-Route::get('/catalog/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/catalog/{product_id}', [ProductController::class, 'show'])->name('products.show');
 
 // ── Public Konsultasi (Form & AJAX Analysis) ───────────────
 Route::get('/consultation', [ConsultationController::class, 'index'])->name('consultation.index');
@@ -64,6 +63,18 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout')
     ->middleware('auth');
 
+// ── Preview routes for admin UI development (no login required)
+Route::view('/admin/profile-preview', 'admin.profile.profile')->name('admin.profile.preview');
+Route::view('/admin/profile-preview/change-password', 'admin.profile.change-password')
+     ->name('admin.profile.preview.change-password');
+
+// ── Journal Preview routes (for development - remove later)
+Route::view('/admin/journal-preview', 'admin.journal.index')->name('admin.journal.preview');
+Route::view('/admin/journal-preview/create', 'admin.journal.create')->name('admin.journal.preview.create');
+Route::view('/admin/journal-preview/edit', 'admin.journal.edit')->name('admin.journal.preview.edit');
+Route::view('/admin/feedback-preview', 'admin.feedback.monitor')->name('admin.feedback.preview');
+// TODO [DEV]: Remove preview routes after admin auth is implemented.
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // C. ROUTE USER (Protected by auth middleware)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -72,6 +83,10 @@ Route::middleware('auth')->group(function () {
     // ── User Profile Management ────────────────────
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // ── Change Password ────────────────────────────
+    Route::get('/profile/password/edit', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -89,6 +104,52 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // ── Admin Dashboard ────────────────────────────
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // ── Admin Profile (Frontend preview only) ──────
+    Route::view('/profile', 'admin.profile.profile')->name('profile');
+    Route::view('/profile/change-password', 'admin.profile.change-password')
+         ->name('profile.change-password');
+    Route::patch('/profile/update-password', function () {
+        return redirect()->route('admin.profile');
+    })->name('profile.update-password');
+    // TODO [BACKEND]: Replace these view routes with real controller actions later.
+
+    // ── Admin placeholder pages for navigation links ──
+    Route::view('/inventory', 'admin.inventory.index')->name('inventory');
+    Route::get('/feedback', [AdminFeedbackController::class, 'monitor'])->name('feedback');
+
+    // ── Editorial Journal / Articles Management ────────
+    // TODO [BACKEND]: Create ArticleController with CRUD methods
+    // Controllers needed: create, store, edit, update, delete methods
+    // Database table: articles with fields documented in create.blade.php
+    Route::get('/journal', function() {
+        // TODO [BACKEND]: Fetch articles from database with pagination
+        return view('admin.journal.index');
+    })->name('journal');
+    
+    Route::get('/journal/create', function() {
+        return view('admin.journal.create');
+    })->name('journal.create');
+    
+    Route::post('/journal', function() {
+        // TODO [BACKEND]: Implement store logic in controller
+        return redirect()->route('admin.journal')->with('success', 'Article created successfully!');
+    })->name('journal.store');
+    
+    Route::get('/journal/{id}/edit', function($id) {
+        // TODO [BACKEND]: Fetch article by ID and pass to edit view
+        return view('admin.journal.edit');
+    })->name('journal.edit');
+    
+    Route::put('/journal/{id}', function($id) {
+        // TODO [BACKEND]: Implement update logic in controller
+        return redirect()->route('admin.journal')->with('success', 'Article updated successfully!');
+    })->name('journal.update');
+    
+    Route::delete('/journal/{id}', function($id) {
+        // TODO [BACKEND]: Implement delete logic in controller
+        return redirect()->route('admin.journal')->with('success', 'Article deleted successfully!');
+    })->name('journal.destroy');
 
     // ── Products Management (Full CRUD) ────────────
     Route::resource('products', AdminProductController::class, [

@@ -108,7 +108,8 @@
     }
     .cat-filter-option:hover { color: #603F26; }
 
-    .cat-filter-option input[type="checkbox"] {
+    .cat-filter-option input[type="checkbox"],
+    .cat-filter-option input[type="radio"] {
         width: 15px; height: 15px;
         accent-color: #603F26;
         flex-shrink: 0;
@@ -163,6 +164,73 @@
     .cat-filter-clear:hover {
         border-color: #603F26;
         color: #603F26;
+    }
+
+    .cat-filter-reset-global {
+        width: 100%;
+        background: #603F26;
+        color: #FFEAC5;
+        border: none;
+        border-radius: 999px;
+        padding: 0.85rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 1.75rem;
+        display: inline-block !important;
+    }
+    .cat-filter-reset-global:hover {
+        background: #4a2f1d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(96, 63, 38, 0.2);
+    }
+
+    /* Scrollbox for filter options */
+    .cat-filter-options-scrollbox {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    .cat-filter-options-scrollbox::-webkit-scrollbar {
+        width: 6px;
+    }
+    .cat-filter-options-scrollbox::-webkit-scrollbar-track {
+        background: rgba(108, 78, 49, 0.08);
+        border-radius: 999px;
+    }
+    .cat-filter-options-scrollbox::-webkit-scrollbar-thumb {
+        background: rgba(96, 63, 38, 0.3);
+        border-radius: 999px;
+    }
+    .cat-filter-options-scrollbox::-webkit-scrollbar-thumb:hover {
+        background: rgba(96, 63, 38, 0.5);
+    }
+
+    /* Brand search container */
+    .cat-brand-search-container {
+        margin-bottom: 0.8rem;
+    }
+    .cat-brand-search {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1.5px solid rgba(108, 78, 49, 0.15);
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-family: 'Poppins', sans-serif;
+        color: #6C4E31;
+        background: #f9f7f4;
+        transition: border-color 0.2s;
+    }
+    .cat-brand-search:focus {
+        outline: none;
+        border-color: #603F26;
+        background: #fff;
+    }
+    .cat-brand-search::placeholder {
+        color: rgba(96, 63, 38, 0.4);
     }
 
     /* ── Mobile filter pills ── */
@@ -302,24 +370,34 @@
 
     .cat-product-cat {
         display: inline-block;
-        background: rgba(96, 63, 38, 0.07);
+        background: transparent;
         color: #6C4E31;
-        border-radius: 999px;
-        padding: 0.22rem 0.75rem;
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        border: 1.2px solid #E8D4C4;
+        border-radius: 20px;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.64rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.75rem;
         width: fit-content;
+    }
+
+    .cat-product-brand {
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: #6C4E31;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.5rem;
+        font-family: 'Poppins', sans-serif;
     }
 
     .cat-product-name {
         font-family: 'Playfair Display', serif;
-        font-size: 0.97rem;
+        font-size: 1.08rem;
         font-weight: 700;
         color: #603F26;
-        line-height: 1.4;
+        line-height: 1.35;
         margin-bottom: 0.5rem;
         flex: 1;
         word-break: break-word;
@@ -371,6 +449,23 @@
     }
     .cat-add-btn:hover { opacity: 0.82; transform: scale(1.1); }
 
+    /* Product arrow icon */
+    .cat-product-arrow {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: rgba(96, 63, 38, 0.1);
+        display: flex; align-items: center; justify-content: center;
+        color: #603F26;
+        cursor: pointer;
+        transition: all 0.25s;
+        flex-shrink: 0;
+    }
+    .cat-product-arrow:hover {
+        background: #603F26;
+        color: #FFEAC5;
+        transform: translateX(3px);
+    }
+
     /* Empty state */
     .cat-empty {
         grid-column: 1 / -1;
@@ -390,9 +485,9 @@
     <div class="cat-header">
         <div class="cat-header-top">
             <h1 class="cat-title">Our Catalog</h1>
-            <span class="cat-count">{{ is_array($products ?? null) ? count($products) : ($products->total() ?? 0) }} produk</span>
+            <span class="cat-count">{{ is_array($products ?? null) ? count($products) : ($products->total() ?? 0) }} products</span>
         </div>
-        <p class="cat-sub">Pilih produk skincare terbaik untuk kebutuhan kulit Anda dari koleksi kami yang lengkap.</p>
+        <p class="cat-sub">Choose the best skincare products for your unique skin needs from our collection.</p>
     </div>
 
     {{-- Mobile Filter Pills ── --}}
@@ -408,48 +503,63 @@
 
         {{-- Sidebar ── --}}
         <aside class="cat-sidebar">
-            <form method="GET" action="{{ route('catalog.index') }}" id="filter-form">
 
-                {{-- Skin Type ── --}}
+                {{-- Product Categories ── --}}
                 <div class="cat-filter-section">
-                    <div class="cat-filter-title">Tipe Kulit</div>
-                    @foreach(['Oily' => 'oily', 'Dry' => 'dry', 'Combination' => 'combination', 'Sensitive' => 'sensitive', 'Normal' => 'normal'] as $label => $val)
-                        <label class="cat-filter-option">
-                            <input type="checkbox" name="skin_type[]" value="{{ $val }}"
-                                {{ in_array($val, request('skin_type', [])) ? 'checked' : '' }}>
-                            {{ $label }}
-                        </label>
-                    @endforeach
+                    <div class="cat-filter-title">Product Categories</div>
+                    <div class="cat-filter-options-scrollbox">
+                        @forelse($categories ?? [] as $category)
+                            <label class="cat-filter-option" data-category="{{ strtolower($category) }}">
+                                <input type="radio" name="category" value="{{ $category }}"
+                                    {{ request('category') === $category ? 'checked' : '' }}>
+                                {{ $category }}
+                            </label>
+                        @empty
+                            <p style="font-size: 0.85rem; color: rgba(96, 63, 38, 0.4);">Tidak ada kategori</p>
+                        @endforelse
+                    </div>
                 </div>
 
-                {{-- Product Type ── --}}
+                {{-- Brands ── --}}
                 <div class="cat-filter-section">
-                    <div class="cat-filter-title">Jenis Produk</div>
-                    @foreach(['Serum','Moisturizer','Cleanser','Toner','Sunscreen','Mask','Eye Cream','Exfoliator'] as $type)
-                        <label class="cat-filter-option">
-                            <input type="checkbox" name="category[]" value="{{ $type }}"
-                                {{ in_array($type, request('category', [])) ? 'checked' : '' }}>
-                            {{ $type }}
-                        </label>
-                    @endforeach
+                    <div class="cat-filter-title">Brands</div>
+                    <div class="cat-brand-search-container">
+                        <input type="text" id="brand-search" class="cat-brand-search" placeholder="Search Brand...">
+                    </div>
+                    <div class="cat-filter-options-scrollbox" id="brand-options-container">
+                        @forelse($brands ?? [] as $brand)
+                            <label class="cat-filter-option" data-brand="{{ strtolower($brand) }}">
+                                <input type="radio" name="brand" value="{{ $brand }}"
+                                    {{ request('brand') === $brand ? 'checked' : '' }}>
+                                {{ $brand }}
+                            </label>
+                        @empty
+                            <p style="font-size: 0.85rem; color: rgba(96, 63, 38, 0.4);">Tidak ada brand</p>
+                        @endforelse
+                    </div>
                 </div>
 
                 {{-- Price Range ── --}}
                 <div class="cat-filter-section">
-                    <div class="cat-filter-title">Rentang Harga</div>
-                    <input type="range" name="max_price" min="1" max="100"
-                           value="{{ request('max_price', 100) }}" id="price-range"
-                           oninput="document.getElementById('price-val').textContent = '$'+this.value">
+                    <div class="cat-filter-title">Price Range</div>
+                    <input type="range" name="max_price" id="price-range" 
+                           min="0" max="2000000" step="10000"
+                           value="{{ request('max_price', 2000000) }}"
+                           oninput="updatePriceDisplay(this.value)">
                     <div class="cat-price-range">
-                        <span>$0</span>
-                        <span id="price-val">${{ request('max_price', 100) }}</span>
+                        <span id="price-min">Rp 0</span>
+                        <span id="price-max">Rp {{ number_format(request('max_price', 2000000), 0, ',', '.') }}</span>
                     </div>
-                    <button type="submit" class="cat-filter-apply">Terapkan Filter</button>
-                    <a href="{{ route('catalog.index') }}" class="cat-filter-clear" style="text-decoration:none; text-align:center; display:block;">Reset Filter</a>
                 </div>
 
-                <input type="hidden" name="sort" id="sort-hidden" value="{{ request('sort', 'newest') }}">
-            </form>
+                {{-- Reset Filters Button ── --}}
+                <a href="{{ route('catalog.index') }}" class="cat-filter-reset-global" style="text-decoration:none; display:block;">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:inline-block; margin-right:0.4rem; vertical-align:-2px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Reset Filters
+                </a>
+
         </aside>
 
         {{-- Products Grid ── --}}
@@ -457,63 +567,17 @@
 
             {{-- Sort bar ── --}}
             <div class="cat-sort-bar">
-                <span class="cat-sort-label">Urutkan:</span>
-                <select class="cat-sort-select" onchange="doSort(this.value)">
-                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Terbaru</option>
-                    <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Harga: Terendah</option>
-                    <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Harga: Tertinggi</option>
-                    <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>Rating Tertinggi</option>
+                <span class="cat-sort-label">Sort by:</span>
+                <select class="cat-sort-select" id="sort-select" onchange="doSort(this.value)">
+                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Latest</option>
+                    <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                    <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                    <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>Product Name (A-Z)</option>
                 </select>
             </div>
 
             <div class="cat-products-grid">
-                @forelse($products ?? [] as $product)
-                    <a href="{{ route('products.show', $product['slug'] ?? Str::slug($product['name'] ?? 'product')) }}" style="text-decoration: none; color: inherit;">
-                        <div class="cat-product-card">
-
-                            @if($product['is_bestseller'] ?? false)
-                                <div class="cat-bestseller-badge">⭐ Best Seller</div>
-                            @endif
-
-                            <div class="cat-product-thumb">
-                                @if(isset($product['image']) && $product['image'])
-                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
-                                @else
-                                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2.5rem;">💧</div>
-                                @endif
-                            </div>
-
-                            <div class="cat-product-body">
-                                <div class="cat-product-cat">{{ $product['kategori_produk'] ?? 'Product' }}</div>
-                                <h3 class="cat-product-name">{{ $product['nama_produk'] }}</h3>
-
-                                {{-- Stars ── --}}
-                                <div class="cat-stars">
-                                    @php $rating = $product['rating'] ?? 4.5; @endphp
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        <span class="cat-star {{ $i <= floor($rating) ? '' : ($i - $rating < 1 ? '' : 'cat-star-empty') }}">★</span>
-                                    @endfor
-                                    <span class="cat-reviews">({{ $product['reviews'] ?? rand(10, 120) }})</span>
-                                </div>
-
-                                <div class="cat-product-footer">
-                                    <div class="cat-product-price">Rp {{ number_format($product['harga_min'] ?? 0, 0, ',', '.') }}</div>
-                                    <button class="cat-add-btn" onclick="event.preventDefault(); event.stopPropagation();" title="Tambah ke keranjang">
-                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-                    </a>
-                @empty
-                    <div class="cat-empty">
-                        <div class="cat-empty-icon">💧</div>
-                        <p style="font-size: 1rem; font-weight: 500;">Produk tidak tersedia.</p>
-                    </div>
-                @endforelse
+                @include('partials.products-grid', ['products' => $products ?? []])
             </div>
 
             {{-- Pagination ── --}}
@@ -531,13 +595,186 @@
 
 @push('scripts')
 <script>
-    function doSort(val) {
-        document.getElementById('sort-hidden').value = val;
-        document.getElementById('filter-form').submit();
+    // ─── Update price display function ───
+    function updatePriceDisplay(value) {
+        const formattedPrice = 'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(value));
+        document.getElementById('price-max').textContent = formattedPrice;
     }
+
+    // Initialize all event listeners
+    function initializeFilters() {
+        console.log('Initializing filters...');
+        
+        // ─── Event Listener untuk Radio Categories ───
+        document.querySelectorAll('input[name="category"]').forEach(radio => {
+            radio.addEventListener('change', triggerFilter);
+        });
+
+        // ─── Event Listener untuk Radio Brands ───
+        document.querySelectorAll('input[name="brand"]').forEach(radio => {
+            radio.addEventListener('change', triggerFilter);
+        });
+
+        // ─── Event Listener untuk Price Range Slider ───
+        document.getElementById('price-range')?.addEventListener('change', triggerFilter);
+
+        // ─── Event Listener untuk Brand Search Input ───
+        document.getElementById('brand-search')?.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const brandLabels = document.querySelectorAll('#brand-options-container .cat-filter-option');
+            
+            brandLabels.forEach(label => {
+                const brandName = label.dataset.brand || '';
+                const isMatch = brandName.includes(searchTerm);
+                label.style.display = searchTerm === '' || isMatch ? 'flex' : 'none';
+            });
+        });
+
+        // ─── Event Listener untuk Reset Filters Button ───
+        document.querySelector('.cat-filter-reset-global')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            resetAllFilters();
+        });
+    }
+
+    // ─── Function to Reset All Filters ───
+    function resetAllFilters() {
+        console.log('Resetting all filters...');
+        
+        // Uncheck all radio buttons untuk kategori
+        document.querySelectorAll('input[name="category"]').forEach(radio => {
+            radio.checked = false;
+        });
+        
+        // Uncheck all radio buttons untuk brand
+        document.querySelectorAll('input[name="brand"]').forEach(radio => {
+            radio.checked = false;
+        });
+        
+        // Reset price slider ke default
+        const priceSlider = document.getElementById('price-range');
+        if (priceSlider) {
+            priceSlider.value = 2000000;
+            updatePriceDisplay(2000000);
+        }
+        
+        // Reset sort ke newest
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            sortSelect.value = 'newest';
+        }
+        
+        // Reload halaman ke URL clean
+        window.location.href = '{{ route("catalog.index") }}';
+    }
+
+    // ─── AJAX Filtering Function ───
+    function triggerFilter() {
+        console.log('Trigger filter called');
+        
+        const selectedCategory = document.querySelector('input[name="category"]:checked')?.value || '';
+        const selectedBrand = document.querySelector('input[name="brand"]:checked')?.value || '';
+        const minPrice = 0;
+        const maxPrice = parseInt(document.getElementById('price-range')?.value || 2000000);
+        const sortBy = document.getElementById('sort-select')?.value || 'newest';
+
+        console.log('Filters:', { selectedCategory, selectedBrand, maxPrice, sortBy });
+
+        // Build URL dengan query parameters
+        let params = new URLSearchParams();
+        
+        if (selectedCategory) {
+            params.append('category', selectedCategory);
+        }
+        
+        if (selectedBrand) {
+            params.append('brand', selectedBrand);
+        }
+        
+        params.append('min_price', minPrice);
+        params.append('max_price', maxPrice);
+        params.append('sort', sortBy);
+
+        const fetchUrl = `{{ route('catalog.index') }}?${params.toString()}`;
+        console.log('Fetch URL:', fetchUrl);
+
+        // Fetch dengan AJAX untuk update halaman
+        fetch(fetchUrl, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('Response:', response.ok, response.status);
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            
+            // data.html contains the grid HTML
+            if (data.html) {
+                const currentGrid = document.querySelector('.cat-products-grid');
+                console.log('Grid found:', !!currentGrid);
+                if (currentGrid) {
+                    currentGrid.innerHTML = data.html;
+                    console.log('Grid updated');
+                }
+            }
+            
+            // Update URL tanpa reload
+            window.history.replaceState({}, '', fetchUrl);
+        })
+        .catch(err => {
+            console.error('Filter error:', err);
+        });
+    }
+
+    function doSort(val) {
+        document.getElementById('sort-select').value = val;
+        triggerFilter();
+    }
+
+    // Collect all selected filters for Supabase query building
+    function getFilterParams() {
+        const selectedCategory = document.querySelector('input[name="category"]:checked')?.value || '';
+        const selectedBrand = document.querySelector('input[name="brand"]:checked')?.value || '';
+        const minPrice = 0;
+        const maxPrice = parseInt(document.getElementById('price-range')?.value || 2000000);
+        const sortBy = document.getElementById('sort-select')?.value || 'newest';
+        
+        return {
+            category: selectedCategory,
+            brand: selectedBrand,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            sortBy: sortBy
+        };
+    }
+
+    // Map sort values to Supabase order parameters
+    function getSortOrderParams(sortBy) {
+        const sortMap = {
+            'newest': { column: 'created_at', ascending: false },
+            'price_asc': { column: 'harga_min', ascending: true },
+            'price_desc': { column: 'harga_min', ascending: false },
+            'rating': { column: 'nama_produk', ascending: true }
+        };
+        return sortMap[sortBy] || sortMap['newest'];
+    }
+
     function mobileFilter(btn, type) {
         btn.classList.toggle('active');
         // Add/remove category checkbox logic here if needed
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeFilters);
+    } else {
+        initializeFilters();
     }
 </script>
 @endpush
