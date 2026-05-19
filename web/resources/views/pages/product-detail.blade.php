@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', (is_array($product) ? $product['name'] : $product->name ?? 'Product') . ' — SkinQuo')
+@section('title', (is_array($product) ? $product['nama_produk'] : $product->nama_produk ?? 'Product') . ' — SkinQuo')
 
 @push('styles')
 <style>
@@ -110,6 +110,15 @@
         margin-bottom: 1rem;
     }
 
+    .pd-brand-name {
+        font-size: 0.95rem;
+        font-weight: 400;
+        color: rgba(96, 63, 38, 0.65);
+        letter-spacing: 0.02em;
+        margin-bottom: 0.5rem;
+        font-family: 'Poppins', sans-serif;
+    }
+
     .pd-name {
         font-family: 'Playfair Display', serif;
         font-size: clamp(1.7rem, 3.5vw, 2.4rem);
@@ -130,8 +139,8 @@
     .pd-rating-text { font-size: 0.8rem; color: rgba(96, 63, 38, 0.5); }
 
     .pd-price {
-        font-size: 2rem;
-        font-weight: 900;
+        font-size: 1.4rem;
+        font-weight: 700;
         color: #603F26;
         margin-bottom: 1.5rem;
         letter-spacing: -0.03em;
@@ -367,7 +376,7 @@
         <span class="pd-breadcrumb-sep">›</span>
         <a href="{{ route('catalog.index') }}">Catalog</a>
         <span class="pd-breadcrumb-sep">›</span>
-        <span class="pd-breadcrumb-current">{{ Str::limit(is_array($product) ? $product['name'] : $product->name, 40) }}</span>
+        <span class="pd-breadcrumb-current">{{ is_array($product) ? ($product['kategori_produk'] ?? 'Product') : ($product->kategori_produk ?? 'Product') }}</span>
     </nav>
 
     {{-- Main Grid ── --}}
@@ -377,19 +386,13 @@
         <div class="pd-image-panel">
             <div class="pd-main-image">
                 @php
-                    $is_bestseller = is_array($product) ? ($product['is_bestseller'] ?? false) : ($product->is_best_seller ?? false);
                     $image = is_array($product) ? ($product['image'] ?? null) : ($product->image ?? null);
-                    $name = is_array($product) ? $product['name'] : $product->name;
+                    $nama = is_array($product) ? $product['nama_produk'] : $product->nama_produk;
                 @endphp
-                @if($is_bestseller)
-                    <div class="pd-bestseller-ribbon">⭐ Best Seller</div>
-                @endif
-                @if($image && !is_array($product))
-                    <img src="{{ Storage::url($image) }}" alt="{{ $name }}">
-                @elseif($image && is_array($product))
-                    <img src="{{ $image }}" alt="{{ $name }}">
+                @if($image)
+                    <img src="{{ $image }}" alt="{{ $nama }}">
                 @else
-                    💧
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 4rem;">💧</div>
                 @endif
             </div>
         </div>
@@ -397,50 +400,28 @@
         {{-- RIGHT: Info ── --}}
         <div class="pd-info-panel">
             @php
-                $category = is_array($product) ? ($product['category'] ?? 'Product') : ($product->category ?? 'Product');
-                $rating = is_array($product) ? ($product['rating'] ?? 4.5) : ($product->rating ?? 4.5);
-                $reviews = is_array($product) ? ($product['reviews'] ?? rand(20, 200)) : ($product->reviews_count ?? rand(20, 200));
-                $price = is_array($product) ? ($product['price'] ?? 0) : ($product->price ?? 0);
-                $description = is_array($product) ? ($product['description'] ?? 'Produk perawatan kulit premium...') : ($product->description ?? 'Produk perawatan kulit premium...');
-                $skin_types = is_array($product) ? ($product['skin_type'] ?? ['Semua Jenis Kulit']) : ($product->skin_types ?? ['Semua Jenis Kulit']);
+                $kategori = is_array($product) ? ($product['kategori_produk'] ?? 'Product') : ($product->kategori_produk ?? 'Product');
+                $nama = is_array($product) ? ($product['nama_produk'] ?? 'Product') : ($product->nama_produk ?? 'Product');
+                $brand = is_array($product) ? ($product['nama_brand'] ?? '') : ($product->nama_brand ?? '');
+                $harga_min = is_array($product) ? ($product['harga_min'] ?? 0) : ($product->harga_min ?? 0);
+                $deskripsi = is_array($product) ? ($product['deskripsi'] ?? '') : ($product->deskripsi ?? '');
+                $link_produk = is_array($product) ? ($product['link_produk'] ?? '#') : ($product->link_produk ?? '#');
             @endphp
-            <div class="pd-cat-badge">{{ $category }}</div>
-            <h1 class="pd-name">{{ $name }}</h1>
-
-            {{-- Stars ── --}}
-            <div class="pd-stars-row">
-                <span class="pd-stars">
-                    @for ($i = 1; $i <= 5; $i++)
-                        {{ $i <= round($rating) ? '★' : '☆' }}
-                    @endfor
-                </span>
-                <span class="pd-rating-text">{{ number_format($rating, 1) }} ({{ $reviews }} ulasan)</span>
-            </div>
-
-            <div class="pd-price">Rp {{ number_format($price, 0, ',', '.') }}</div>
-
-            <p class="pd-short-desc">
-                {{ Str::limit($description, 200) }}
-            </p>
-
-            {{-- Skin type tags ── --}}
-            @if(is_array($skin_types) && count($skin_types) > 0)
-                <div class="pd-skin-tags">
-                    @foreach($skin_types as $type)
-                        <span class="pd-skin-tag">{{ $type }}</span>
-                    @endforeach
-                </div>
-            @else
-                <div class="pd-skin-tags">
-                    <span class="pd-skin-tag">Semua Jenis Kulit</span>
-                    <span class="pd-skin-tag">Sensitive-Friendly</span>
-                </div>
+            <div class="pd-cat-badge">{{ $kategori }}</div>
+            
+            @if($brand)
+                <div class="pd-brand-name">{{ $brand }}</div>
             @endif
+            
+            <h1 class="pd-name">{{ $nama }}</h1>
 
-            {{-- Actions ── --}}
+            <div class="pd-price">Rp {{ number_format($harga_min, 0, ',', '.') }}</div>
+
+            {{-- Actions - Only Buy Product Button ── --}}
             <div class="pd-actions">
-                <button class="pd-btn-primary">Tambah ke Keranjang</button>
-                <button class="pd-btn-secondary">♡ Wishlist</button>
+                <a href="{{ $link_produk }}" target="_blank" rel="noopener noreferrer" class="pd-btn-primary" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
+                    🛒 Buy Product
+                </a>
             </div>
 
             {{-- Tabs ── --}}
@@ -455,12 +436,12 @@
                 <div id="tab-desc" class="pd-tab-panel active">
                     <div class="pd-tab-content">
                         @php
-                            $desc = is_array($product) ? ($product['description'] ?? '<p>Produk perawatan kulit premium dari SkinQuo.</p>') : ($product->description ?? '<p>Produk perawatan kulit premium dari SkinQuo.</p>');
+                            $desc = is_array($product) ? ($product['deskripsi'] ?? '') : ($product->deskripsi ?? '');
                         @endphp
-                        @if(is_array($product) && isset($product['description']))
+                        @if(!empty($desc))
                             {!! nl2br(htmlspecialchars($desc)) !!}
                         @else
-                            {!! $desc !!}
+                            <p>Informasi deskripsi tidak tersedia.</p>
                         @endif
                     </div>
                 </div>
@@ -469,22 +450,12 @@
                 <div id="tab-how" class="pd-tab-panel">
                     <div class="pd-tab-content">
                         @php
-                            $howToUse = is_array($product) ? ($product['usage'] ?? null) : ($product->how_to_use ?? null);
+                            $carapakai = is_array($product) ? ($product['cara_pakai'] ?? '') : ($product->cara_pakai ?? '');
                         @endphp
-                        @if($howToUse)
-                            @if(is_array($product))
-                                {!! nl2br(htmlspecialchars($howToUse)) !!}
-                            @else
-                                {!! $howToUse !!}
-                            @endif
+                        @if(!empty($carapakai))
+                            {!! nl2br(htmlspecialchars($carapakai)) !!}
                         @else
-                            <ol class="pd-steps">
-                                <li>Bersihkan wajah menggunakan cleanser dan keringkan.</li>
-                                <li>Oleskan produk secara merata ke wajah dan leher.</li>
-                                <li>Tunggu hingga terserap sempurna (±1–2 menit).</li>
-                                <li>Lanjutkan dengan langkah skincare berikutnya.</li>
-                                <li>Gunakan pagi dan malam hari untuk hasil optimal.</li>
-                            </ol>
+                            <p>Informasi cara pakai tidak tersedia.</p>
                         @endif
                     </div>
                 </div>
@@ -493,26 +464,24 @@
                 <div id="tab-ingredients" class="pd-tab-panel">
                     <div class="pd-tab-content">
                         @php
-                            $ingredients = is_array($product) ? ($product['ingredients'] ?? null) : ($product->ingredients ?? null);
+                            $kandungan = is_array($product) ? ($product['kandungan'] ?? '') : ($product->kandungan ?? '');
                         @endphp
-                        @if($ingredients)
+                        @if(!empty($kandungan))
                             <div class="pd-ingredients">
-                                @if(is_array($ingredients))
-                                    @foreach($ingredients as $ingredient)
-                                        <span class="pd-ingredient-tag">{{ $ingredient }}</span>
-                                    @endforeach
-                                @else
-                                    @foreach(explode(',', $ingredients) as $ingredient)
-                                        <span class="pd-ingredient-tag">{{ trim($ingredient) }}</span>
-                                    @endforeach
-                                @endif
+                                @php
+                                    // Split by comma if it's a string
+                                    $ingredients = is_array($kandungan) ? $kandungan : array_filter(array_map('trim', explode(',', $kandungan)));
+                                @endphp
+                                @forelse($ingredients as $ing)
+                                    @if(!empty($ing))
+                                        <span class="pd-ingredient-tag">{{ $ing }}</span>
+                                    @endif
+                                @empty
+                                    <p>Informasi kandungan tidak tersedia.</p>
+                                @endforelse
                             </div>
                         @else
-                            <div class="pd-ingredients">
-                                @foreach(['Niacinamide', 'Hyaluronic Acid', 'Ceramide', 'Vitamin E', 'Centella Asiatica', 'Panthenol', 'Glycerin', 'Allantoin'] as $ing)
-                                    <span class="pd-ingredient-tag">{{ $ing }}</span>
-                                @endforeach
-                            </div>
+                            <p>Informasi kandungan tidak tersedia.</p>
                         @endif
                     </div>
                 </div>
@@ -521,29 +490,8 @@
         </div>
     </div>
 
-    {{-- Related Products ── --}}
-    @if(isset($related) && $related->count() > 0)
-    <div class="pd-bottom-section">
-        <h2 class="pd-section-title">Produk Terkait</h2>
-        <div class="pd-related-grid">
-            @foreach($related->take(4) as $rel)
-                <a href="{{ route('catalog.show', $rel->slug) }}" class="pd-related-card">
-                    <div class="pd-related-thumb">
-                        @if($rel->image)
-                            <img src="{{ Storage::url($rel->image) }}" alt="{{ $rel->name }}">
-                        @else
-                            💧
-                        @endif
-                    </div>
-                    <div class="pd-related-body">
-                        <div class="pd-related-name">{{ $rel->name }}</div>
-                        <div class="pd-related-price">${{ number_format($rel->price, 2) }}</div>
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </div>
-    @endif
+    {{-- Related Products (Hidden for now) ── --}}
+    {{-- Related Products section removed for soft selling catalog --}}
 
 </div>
 </div>

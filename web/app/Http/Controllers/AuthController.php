@@ -84,7 +84,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             return redirect()->intended(route('home'))->with('status', 'Login berhasil!');
         } catch (\Exception $e) {
-            \Log::error('Login session error: ' . $e->getMessage());
+            Log::error('Login session error: ' . $e->getMessage());
             return back()->withErrors([
                 'email' => 'Terjadi kesalahan saat login. Silakan coba lagi.',
             ])->onlyInput('email');
@@ -210,14 +210,14 @@ class AuthController extends Controller
                 $request->session()->regenerate();
                 return redirect(route('home'))->with('status', 'Pendaftaran berhasil! Selamat datang di SkinQuo.');
             } catch (\Exception $e) {
-                \Log::error('Auto login after register failed: ' . $e->getMessage());
+                Log::error('Auto login after register failed: ' . $e->getMessage());
                 return back()->withErrors([
                     'error' => 'Terjadi kesalahan saat login otomatis. Silakan login manual.',
                 ])->withInput();
             }
         } catch (\Exception $e) {
             // Log error untuk debugging (jangan tampilkan detail error ke user)
-            \Log::error('Registration error: ' . $e->getMessage());
+            Log::error('Registration error: ' . $e->getMessage());
             
             return back()->withErrors([
                 'error' => 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.',
