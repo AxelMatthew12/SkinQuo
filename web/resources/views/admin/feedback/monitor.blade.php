@@ -17,30 +17,29 @@
                 <i class="bi bi-chat-square-text"></i>
             </div>
             <div class="total-feedback-stats">
-                <strong>24</strong>
+                <strong>{{ $stats['total'] ?? ($feedback->total() ?? 0) }}</strong>
                 <span>Total Feedback</span>
             </div>
         </div>
     </div>
 
     <section class="feedback-panel card-admin">
-        <div class="feedback-toolbar">
+        <form method="GET" action="{{ route('admin.feedback.monitor') }}" class="feedback-toolbar">
             <label class="search-wrapper">
                 <i class="bi bi-search"></i>
-                <input type="search" placeholder="Cari pesan atau nama..." aria-label="Cari pesan atau nama" />
+                <input name="q" value="{{ request('q') }}" type="search" placeholder="Cari pesan atau nama..." aria-label="Cari pesan atau nama" />
             </label>
 
             <div class="filter-actions">
-                <select class="input-admin filter-select">
-                    <option>Filter Tipe</option>
-                    <option>Semua</option>
-                    <option>Keluhan</option>
-                    <option>Saran</option>
-                    <option>Pujian</option>
+                <select name="type" class="filter-select">
+                    <option value="">Filter Tipe</option>
+                    <option value="">Semua</option>
+                    <option value="keluhan">Keluhan</option>
+                    <option value="saran">Saran</option>
+                    <option value="pujian">Pujian</option>
                 </select>
-                <button class="btn-primary-admin filter-button">Terapkan</button>
             </div>
-        </div>
+        </form>
 
         <div class="feedback-table-card">
             <table class="feedback-table">
@@ -54,47 +53,61 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td data-label="Nama">Elena Miller</td>
-                        <td data-label="Email">elena.m@example.com</td>
-                        <td data-label="Pesan">Mungkin bisa ditambahkan varian untuk serum malam hari yang lebih fokus pada hidrasi mendalam...</td>
-                        <td data-label="Tanggal">12 Okt 2023</td>
-                        <td data-label="Aksi"><button class="detail-button" data-name="Elena Miller" data-email="elena.m@example.com" data-date="October 24, 2023" data-message="Mungkin bisa ditambahkan varian baru untuk serum malam hari yang lebih fokus pada hidrasi mendalam dan perbaikan skin barrier. Saya sangat menyukai tekstur produk yang sekarang, tapi merasa butuh sesuatu yang sedikit lebih kaya untuk cuaca dingin.">Lihat Detail</button></td>
-                    </tr>
-                    <tr>
-                        <td data-label="Nama">Julian S.</td>
-                        <td data-label="Email">j.smith@webmail.id</td>
-                        <td data-label="Pesan">Paket yang saya terima sedikit penyok di bagian kemasan...</td>
-                        <td data-label="Tanggal">11 Okt 2023</td>
-                        <td data-label="Aksi"><button class="detail-button" data-name="Julian S." data-email="j.smith@webmail.id" data-date="October 11, 2023" data-message="Paket yang saya terima sedikit penyok di bagian kemasan, tetapi isi produk masih aman. Mungkin bisa ditingkatkan lapisan pelindung agar pengiriman lebih aman.">Lihat Detail</button></td>
-                    </tr>
-                    <tr>
-                        <td data-label="Nama">Anita Rahma</td>
-                        <td data-label="Email">anita.r@global.net</td>
-                        <td data-label="Pesan">Apakah produk serum malam bisa dipakai untuk kulit sensitif?</td>
-                        <td data-label="Tanggal">11 Okt 2023</td>
-                        <td data-label="Aksi"><button class="detail-button" data-name="Anita Rahma" data-email="anita.r@global.net" data-date="October 11, 2023" data-message="Apakah produk serum malam bisa dipakai untuk kulit sensitif? Saya khawatir ada reaksi jika digunakan setiap hari, jadi mohon klarifikasi bahan yang aman.">Lihat Detail</button></td>
-                    </tr>
-                    <tr>
-                        <td data-label="Nama">Kevin Brown</td>
-                        <td data-label="Email">kevin.b@mail.com</td>
-                        <td data-label="Pesan">Desain website sangat tenang, pertahankan palet warna ini.</td>
-                        <td data-label="Tanggal">10 Okt 2023</td>
-                        <td data-label="Aksi"><button class="detail-button" data-name="Kevin Brown" data-email="kevin.b@mail.com" data-date="October 10, 2023" data-message="Desain website sangat tenang, pertahankan palet warna ini. Navigasinya juga mudah dipahami.">Lihat Detail</button></td>
-                    </tr>
+                    @forelse($feedback as $item)
+                        @php
+                            $id = data_get($item, 'id');
+                            $name = data_get($item, 'name');
+                            $email = data_get($item, 'email');
+                            $message = data_get($item, 'message');
+                            $date = data_get($item, 'created_at') ? \Carbon\Carbon::parse(data_get($item, 'created_at'))->translatedFormat('d M Y') : '';
+                        @endphp
+                        <tr>
+                            <td data-label="Nama">{{ $name }}</td>
+                            <td data-label="Email">{{ $email }}</td>
+                            <td data-label="Pesan">{{ Str::limit($message, 80) }}</td>
+                            <td data-label="Tanggal">{{ $date }}</td>
+                            <td data-label="Aksi"><button class="detail-button" data-id="{{ $id }}" data-name="{{ $name }}" data-email="{{ $email }}" data-date="{{ $date }}" data-message="{{ $message }}">Lihat Detail</button></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5">Tidak ada feedback untuk ditampilkan.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
-        </div>
-
-        <div class="table-footer">
-            <p>Menampilkan 1-10 dari 1,284 feedback</p>
-            <nav class="pagination">
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn">3</button>
-                <span>...</span>
-                <button class="page-btn">128</button>
-            </nav>
+            <div class="table-footer">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <a href="{{ route('admin.feedback.export.csv') }}" class="btn-secondary-admin">⬇ CSV</a>
+                    <a href="{{ route('admin.feedback.export.pdf') }}" class="btn-secondary-admin">📄 PDF</a>
+                </div>
+                <nav class="pagination">
+                    @if(method_exists($feedback, 'currentPage'))
+                        @php
+                            $current = $feedback->currentPage();
+                            $last = $feedback->lastPage();
+                        @endphp
+                        <button class="page-btn" {{ $current === 1 ? 'disabled' : '' }}>‹</button>
+                        @for($page = 1; $page <= min(3, $last); $page++)
+                            <button class="page-btn {{ $page === $current ? 'active' : '' }}">{{ $page }}</button>
+                        @endfor
+                        @if($last > 4)
+                            <span>...</span>
+                            <button class="page-btn">{{ $last }}</button>
+                        @elseif($last > 3)
+                            @for($page = 4; $page <= $last; $page++)
+                                <button class="page-btn {{ $page === $current ? 'active' : '' }}">{{ $page }}</button>
+                            @endfor
+                        @endif
+                        <button class="page-btn" {{ $current === $last ? 'disabled' : '' }}>›</button>
+                    @else
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span>...</span>
+                        <button class="page-btn">128</button>
+                    @endif
+                </nav>
+            </div>
         </div>
     </section>
 </div>
@@ -138,6 +151,7 @@
     const modalDate = document.querySelector('.modal-date');
     const modalMessage = document.getElementById('feedbackDetailMessage');
     const modalAvatar = document.querySelector('.modal-avatar');
+    // Removed action buttons (approve/reject/helpful) per UI update
 
     function openModal({ name, email, date, message }) {
         modalName.textContent = name;
@@ -160,6 +174,13 @@
                 date: button.dataset.date,
                 message: button.dataset.message,
             });
+        });
+    });
+
+    // keep dataset id for potential use
+    detailButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modal.dataset.feedbackId = button.dataset.id;
         });
     });
 
