@@ -717,7 +717,7 @@
 {{-- ══════════════════════════════════════════════════════
      COMMUNITY VOICES
 ══════════════════════════════════════════════════════ --}}
-<section class="reflections-section">
+<section class="reflections-section" id="community-voices">
     <div style="max-width:1100px;margin:0 auto;">
 
         <div style="text-align:center;margin-bottom:3.5rem;">
@@ -786,7 +786,7 @@
 {{-- ══════════════════════════════════════════════════════
      LEAVE YOUR FEEDBACK
 ══════════════════════════════════════════════════════ --}}
-<section class="share-section">
+<section class="share-section" id="feedback-form">
     <div class="share-inner">
 
         <div style="text-align:center;margin-bottom:2.5rem;">
