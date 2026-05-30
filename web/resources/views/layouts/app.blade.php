@@ -128,6 +128,7 @@
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
+            pointer-events: auto;
             
             padding: 11px 30px;
             border-radius: 999px;
