@@ -157,7 +157,7 @@ Route::middleware(['auth', AdminMiddleware::class])
             ->name('profile.update');
 
         // Inventory
-        Route::view('/inventory', 'admin.inventory.index')
+        Route::get('/inventory', [AdminProductController::class, 'index'])
             ->name('inventory');
 
         // Feedback

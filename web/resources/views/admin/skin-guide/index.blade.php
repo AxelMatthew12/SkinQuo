@@ -12,19 +12,13 @@
     --brown-light:#C4906A;
     --brown-border:#E8D5BE;
   }
-
-  /* ===== PAGE ===== */
   .sg-page {
     background: var(--cream-bg);
     min-height: 100vh;
     padding: 48px 48px;
     font-family: 'Jost', sans-serif;
   }
-
-  /* ===== HEADER ===== */
-  .sg-header {
-    margin-bottom: 32px;
-  }
+  .sg-header { margin-bottom: 32px; }
   .sg-header h1 {
     font-family: 'Playfair Display', serif;
     font-size: 52px;
@@ -33,10 +27,7 @@
     line-height: 1.1;
     margin: 0 0 12px;
   }
-  .sg-header h1 em {
-    font-style: italic;
-    font-weight: 400;
-  }
+  .sg-header h1 em { font-style: italic; font-weight: 400; }
   .sg-header p {
     font-size: 14px;
     color: var(--brown-mid);
@@ -44,8 +35,6 @@
     line-height: 1.6;
     margin: 0;
   }
-
-  /* ===== TAB TOGGLE ===== */
   .sg-tabs {
     display: inline-flex;
     background: #F5E8D0;
@@ -70,30 +59,23 @@
     background: transparent;
     cursor: pointer;
   }
-  .sg-tab.active,
-  .sg-tab:hover {
+  .sg-tab.active, .sg-tab:hover {
     background: #fff;
     color: var(--brown-dark);
     text-decoration: none;
   }
   .sg-tab i { font-size: 15px; }
-
-  /* ===== GRID 2 COLS ===== */
   .sg-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-bottom: 32px;
   }
-
-  /* ===== UPLOAD CARD ===== */
   .sg-upload-card {
     background: var(--cream-card);
     border-radius: 20px;
     padding: 24px;
   }
-
-  /* card header */
   .sg-card-header {
     display: flex;
     align-items: center;
@@ -140,8 +122,6 @@
     text-transform: uppercase;
     white-space: nowrap;
   }
-
-  /* ===== DROPZONE ===== */
   .sg-dropzone {
     border: 2px dashed var(--brown-border);
     border-radius: 14px;
@@ -152,8 +132,7 @@
     position: relative;
     background: transparent;
   }
-  .sg-dropzone:hover,
-  .sg-dropzone.dragover {
+  .sg-dropzone:hover, .sg-dropzone.dragover {
     border-color: var(--brown-mid);
     background: #FFF3E5;
   }
@@ -189,8 +168,6 @@
     color: var(--brown-light);
     margin: 0;
   }
-
-  /* ===== UPLOAD PROGRESS ===== */
   .sg-upload-progress {
     background: #F5EAD8;
     border-radius: 12px;
@@ -212,10 +189,7 @@
     font-size: 16px;
     flex-shrink: 0;
   }
-  .sg-progress-info {
-    flex: 1;
-    min-width: 0;
-  }
+  .sg-progress-info { flex: 1; min-width: 0; }
   .sg-progress-filename {
     font-size: 13px;
     font-weight: 600;
@@ -241,7 +215,7 @@
     background: var(--brown-dark);
     border-radius: 999px;
     height: 4px;
-    width: 45%;
+    width: 0%;
     transition: width 0.3s;
   }
   .sg-progress-status {
@@ -264,8 +238,6 @@
     line-height: 1;
   }
   .sg-progress-close:hover { color: var(--brown-dark); }
-
-  /* ===== BOTTOM ACTIONS ===== */
   .sg-bottom-actions {
     display: flex;
     justify-content: flex-end;
@@ -288,11 +260,7 @@
     cursor: pointer;
     transition: background 0.15s;
   }
-  .btn-download-tpl:hover {
-    background: #F5E8D0;
-    color: var(--brown-dark);
-    text-decoration: none;
-  }
+  .btn-download-tpl:hover { background: #F5E8D0; color: var(--brown-dark); text-decoration: none; }
   .btn-process-all {
     display: flex;
     align-items: center;
@@ -307,23 +275,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
-    text-decoration: none;
   }
-  .btn-process-all:hover {
-    background: var(--brown-mid);
-    transform: translateY(-1px);
-    color: #fff;
-    text-decoration: none;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    .sg-grid { grid-template-columns: 1fr; }
-    .sg-page { padding: 32px 24px; }
-    .sg-header h1 { font-size: 36px; }
-  }
-
-  /* ===== NOTIFICATION DOT ===== */
+  .btn-process-all:hover { background: var(--brown-mid); transform: translateY(-1px); }
   .sg-dot {
     width: 8px;
     height: 8px;
@@ -332,42 +285,44 @@
     position: absolute;
     top: 8px;
     left: 8px;
+    z-index: 1;
+  }
+  @media (max-width: 900px) {
+    .sg-grid { grid-template-columns: 1fr; }
+    .sg-page { padding: 32px 24px; }
+    .sg-header h1 { font-size: 36px; }
   }
 </style>
 
 <div class="sg-page">
 
-  {{-- ===== HEADER ===== --}}
+  {{-- HEADER --}}
   <div class="sg-header">
     <h1>Upload <em>Dictionary File</em></h1>
     <p>Drag and drop CSV files to update system dictionaries. Ensure
        formats match the required schema to maintain data integrity.</p>
   </div>
 
-  {{-- ===== TAB NAVIGATION ===== --}}
+  {{-- TABS --}}
   <div class="sg-tabs">
-    <a href="{{ route('admin.inventory') }}"
-       class="sg-tab">
+    <a href="{{ route('admin.inventory') }}" class="sg-tab">
       <i class="bi bi-archive"></i>
       Product Catalog
     </a>
-    <a href="{{ route('admin.skin-guide.index') }}"
-       class="sg-tab active">
+    <a href="{{ route('admin.skin-guide.index') }}" class="sg-tab active">
       <i class="bi bi-journal-bookmark"></i>
       Skin Guide Articles
     </a>
   </div>
 
-  {{-- ===== UPLOAD CARDS GRID ===== --}}
+  {{-- GRID --}}
   <div class="sg-grid">
 
     {{-- Card 1: Product Dictionary --}}
     <div class="sg-upload-card">
       <div class="sg-card-header">
         <div class="sg-card-header-left">
-          <div class="sg-card-icon">
-            <i class="bi bi-bag"></i>
-          </div>
+          <div class="sg-card-icon"><i class="bi bi-bag"></i></div>
           <div>
             <div class="sg-card-title">Product Dictionary</div>
             <div class="sg-card-updated">Last updated: Today, 09:41 AM</div>
@@ -380,9 +335,7 @@
            ondragleave="handleDragLeave('zone-product')"
            ondrop="handleDrop(event,'zone-product','progress-product')">
         <input type="file" accept=".csv" onchange="handleFileSelect(this,'progress-product')">
-        <div class="sg-dropzone-icon">
-          <i class="bi bi-file-earmark-arrow-up"></i>
-        </div>
+        <div class="sg-dropzone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
         <div class="sg-dropzone-title">Click to upload or drag and drop</div>
         <div class="sg-dropzone-sub">Max file size: 50MB</div>
       </div>
@@ -390,12 +343,10 @@
     </div>
 
     {{-- Card 2: Constraint Dictionary --}}
-    <div class="sg-upload-card" style="position:relative;">
+    <div class="sg-upload-card">
       <div class="sg-card-header">
         <div class="sg-card-header-left">
-          <div class="sg-card-icon">
-            <i class="bi bi-exclamation-triangle"></i>
-          </div>
+          <div class="sg-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
           <div>
             <div class="sg-card-title">Constraint Dictionary</div>
             <div class="sg-card-updated">Last updated: 1 week ago</div>
@@ -410,9 +361,7 @@
              ondragleave="handleDragLeave('zone-constraint')"
              ondrop="handleDrop(event,'zone-constraint','progress-constraint')">
           <input type="file" accept=".csv" onchange="handleFileSelect(this,'progress-constraint')">
-          <div class="sg-dropzone-icon">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-          </div>
+          <div class="sg-dropzone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
           <div class="sg-dropzone-title">Click to upload or drag and drop</div>
           <div class="sg-dropzone-sub">Max file size: 50MB</div>
         </div>
@@ -424,9 +373,7 @@
     <div class="sg-upload-card">
       <div class="sg-card-header">
         <div class="sg-card-header-left">
-          <div class="sg-card-icon">
-            <i class="bi bi-droplet"></i>
-          </div>
+          <div class="sg-card-icon"><i class="bi bi-droplet"></i></div>
           <div>
             <div class="sg-card-title">Skin Type Dictionary</div>
             <div class="sg-card-updated">Last updated: Yesterday, 04:20 PM</div>
@@ -439,71 +386,46 @@
            ondragleave="handleDragLeave('zone-skintype')"
            ondrop="handleDrop(event,'zone-skintype','progress-skintype')">
         <input type="file" accept=".csv" onchange="handleFileSelect(this,'progress-skintype')">
-        <div class="sg-dropzone-icon">
-          <i class="bi bi-file-earmark-arrow-up"></i>
-        </div>
+        <div class="sg-dropzone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
         <div class="sg-dropzone-title">Click to upload or drag and drop</div>
         <div class="sg-dropzone-sub">Max file size: 50MB</div>
       </div>
       <div id="progress-skintype" style="display:none; margin-top:12px;"></div>
     </div>
 
-    {{-- Card 4: Constraint Dictionary 2 (with uploading demo) --}}
+    {{-- Card 4: Ingredient Dictionary --}}
     <div class="sg-upload-card">
       <div class="sg-card-header">
         <div class="sg-card-header-left">
-          <div class="sg-card-icon">
-            <i class="bi bi-shield-check"></i>
-          </div>
+          <div class="sg-card-icon"><i class="bi bi-shield-check"></i></div>
           <div>
-            <div class="sg-card-title">Constraint Dictionary</div>
+            <div class="sg-card-title">Ingredient Dictionary</div>
             <div class="sg-card-updated">Last updated: 1 week ago</div>
           </div>
         </div>
         <span class="sg-badge-csv">CSV Only</span>
       </div>
-
-      {{-- Upload Progress Demo --}}
-      <div class="sg-upload-progress" id="demo-progress">
-        <div class="sg-progress-icon">
-          <i class="bi bi-file-earmark-text"></i>
-        </div>
-        <div class="sg-progress-info">
-          <div class="sg-progress-filename">constraints_v2_final.csv</div>
-          <div class="sg-progress-meta">2.4 MB &bull; 45% uploaded</div>
-          <div class="sg-progress-bar-wrap">
-            <div class="sg-progress-bar" id="demo-bar"></div>
-          </div>
-          <div class="sg-progress-status">UPLOADING...</div>
-        </div>
-        <button class="sg-progress-close" onclick="dismissDemo()" title="Cancel">&times;</button>
+      <div class="sg-dropzone" id="zone-ingredient"
+           ondragover="handleDragOver(event,'zone-ingredient')"
+           ondragleave="handleDragLeave('zone-ingredient')"
+           ondrop="handleDrop(event,'zone-ingredient','progress-ingredient')">
+        <input type="file" accept=".csv" onchange="handleFileSelect(this,'progress-ingredient')">
+        <div class="sg-dropzone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+        <div class="sg-dropzone-title">Click to upload or drag and drop</div>
+        <div class="sg-dropzone-sub">Max file size: 50MB</div>
       </div>
-
-      <div id="zone-constraint2-wrap" style="display:none; margin-top:12px;">
-        <div class="sg-dropzone" id="zone-constraint2"
-             ondragover="handleDragOver(event,'zone-constraint2')"
-             ondragleave="handleDragLeave('zone-constraint2')"
-             ondrop="handleDrop(event,'zone-constraint2','progress-constraint2')">
-          <input type="file" accept=".csv" onchange="handleFileSelect(this,'progress-constraint2')">
-          <div class="sg-dropzone-icon">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-          </div>
-          <div class="sg-dropzone-title">Click to upload or drag and drop</div>
-          <div class="sg-dropzone-sub">Max file size: 50MB</div>
-        </div>
-      </div>
-      <div id="progress-constraint2" style="display:none; margin-top:12px;"></div>
+      <div id="progress-ingredient" style="display:none; margin-top:12px;"></div>
     </div>
 
   </div>{{-- end sg-grid --}}
 
-  {{-- ===== BOTTOM ACTIONS ===== --}}
+  {{-- BOTTOM ACTIONS --}}
   <div class="sg-bottom-actions">
-    <a href="#" class="btn-download-tpl" onclick="downloadTemplates(event)">
+    <a href="#" class="btn-download-tpl" onclick="event.preventDefault(); alert('Downloading CSV templates...')">
       <i class="bi bi-download"></i>
       Download Templates
     </a>
-    <button type="button" class="btn-process-all" onclick="processAll()">
+    <button type="button" class="btn-process-all" onclick="alert('Processing all uploaded dictionaries...')">
       <i class="bi bi-play-fill"></i>
       Process All
     </button>
@@ -513,7 +435,6 @@
 
 @push('scripts')
 <script>
-  // ===== DRAG & DROP HANDLERS =====
   function handleDragOver(e, zoneId) {
     e.preventDefault();
     document.getElementById(zoneId).classList.add('dragover');
@@ -531,17 +452,13 @@
     const file = input.files[0];
     if (file) showProgress(progressId, file);
   }
-
-  // ===== SHOW UPLOAD PROGRESS =====
   function showProgress(containerId, file) {
     const container = document.getElementById(containerId);
     const sizeMB = (file.size / 1024 / 1024).toFixed(1);
     container.style.display = 'block';
     container.innerHTML = `
       <div class="sg-upload-progress">
-        <div class="sg-progress-icon">
-          <i class="bi bi-file-earmark-text"></i>
-        </div>
+        <div class="sg-progress-icon"><i class="bi bi-file-earmark-text"></i></div>
         <div class="sg-progress-info">
           <div class="sg-progress-filename">${file.name}</div>
           <div class="sg-progress-meta">${sizeMB} MB &bull; uploading...</div>
@@ -554,59 +471,23 @@
       </div>`;
     simulateProgress(`bar-${containerId}`, `status-${containerId}`);
   }
-
   function simulateProgress(barId, statusId) {
     let pct = 0;
-    const bar    = document.getElementById(barId);
-    const status = document.getElementById(statusId);
     const iv = setInterval(() => {
       pct += Math.random() * 12;
       if (pct >= 100) {
         pct = 100;
         clearInterval(iv);
-        if (status) status.textContent = 'COMPLETE ✓';
-        if (status) status.style.color = '#27AE60';
+        const s = document.getElementById(statusId);
+        if (s) { s.textContent = 'COMPLETE ✓'; s.style.color = '#27AE60'; }
       }
-      if (bar) bar.style.width = pct + '%';
+      const b = document.getElementById(barId);
+      if (b) b.style.width = pct + '%';
     }, 300);
   }
-
   function dismissProgress(containerId) {
     const el = document.getElementById(containerId);
     if (el) { el.style.display = 'none'; el.innerHTML = ''; }
-  }
-
-  // ===== DEMO PROGRESS (Card 4) =====
-  let demoProgress = 45;
-  const demoInterval = setInterval(() => {
-    demoProgress += Math.random() * 5;
-    if (demoProgress >= 100) {
-      demoProgress = 100;
-      clearInterval(demoInterval);
-      const status = document.querySelector('#demo-progress .sg-progress-status');
-      const meta   = document.querySelector('#demo-progress .sg-progress-meta');
-      if (status) { status.textContent = 'COMPLETE ✓'; status.style.color = '#27AE60'; }
-      if (meta)   meta.textContent = '2.4 MB • uploaded';
-    }
-    const bar  = document.getElementById('demo-bar');
-    const meta = document.querySelector('#demo-progress .sg-progress-meta');
-    if (bar)  bar.style.width = demoProgress + '%';
-    if (meta && demoProgress < 100) meta.textContent = `2.4 MB • ${Math.round(demoProgress)}% uploaded`;
-  }, 400);
-
-  function dismissDemo() {
-    document.getElementById('demo-progress').style.display = 'none';
-    document.getElementById('zone-constraint2-wrap').style.display = 'block';
-    clearInterval(demoInterval);
-  }
-
-  // ===== BOTTOM BUTTONS =====
-  function downloadTemplates(e) {
-    e.preventDefault();
-    alert('Downloading CSV templates...');
-  }
-  function processAll() {
-    alert('Processing all uploaded dictionaries...');
   }
 </script>
 @endpush
