@@ -290,6 +290,10 @@
     font-size: 16px;
   }
 
+  /* ===== MODAL Z-INDEX FIX ===== */
+  .modal { z-index: 99999 !important; }
+  .modal-backdrop { z-index: 99998 !important; }
+
   /* ===== DELETE MODAL ===== */
   .inventory-page .modal-content {
     border-radius: 24px;
