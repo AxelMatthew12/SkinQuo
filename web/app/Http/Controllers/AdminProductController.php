@@ -38,7 +38,7 @@ class AdminProductController extends Controller
      */
     public function create()
     {
-        return view('admin.products.create');
+        return view('admin.inventory.create');
     }
 
     /**
@@ -56,17 +56,23 @@ class AdminProductController extends Controller
             'deskripsi' => 'nullable|string',
             'cara_pakai' => 'nullable|string',
             'kandungan' => 'nullable|string',
-            'image' => 'nullable|string',
-            'link_produk' => 'nullable|string',
+            'image' => 'nullable|string|url',
+            'link_produk' => 'nullable|string|url',
+            'is_visible' => 'nullable|boolean',
         ]);
 
-        $product = Product::create($validated);
+        try {
+            $product = Product::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Product berhasil ditambahkan',
-            'data' => $product
-        ]);
+            return redirect()
+                ->route('admin.inventory')
+                ->with('success', 'Product berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan product: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -82,7 +88,7 @@ class AdminProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return view('admin.products.edit', compact('product'));
+        return view('admin.inventory.edit', compact('product'));
     }
 
     /**
@@ -99,15 +105,23 @@ class AdminProductController extends Controller
             'deskripsi' => 'nullable|string',
             'cara_pakai' => 'nullable|string',
             'kandungan' => 'nullable|string',
-            'image' => 'nullable|string',
-            'link_produk' => 'nullable|string',
+            'image' => 'nullable|string|url',
+            'link_produk' => 'nullable|string|url',
+            'is_visible' => 'nullable|boolean',
         ]);
 
-        $product->update($validated);
+        try {
+            $product->update($validated);
 
-        return redirect()
-            ->route('admin.inventory')
-            ->with('success', 'Product berhasil diupdate!');
+            return redirect()
+                ->route('admin.inventory')
+                ->with('success', 'Product berhasil diupdate');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate product: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -115,11 +129,16 @@ class AdminProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $product->delete();
+        try {
+            $product->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Product berhasil dihapus'
-        ]);
+            return redirect()
+                ->route('admin.inventory')
+                ->with('success', 'Product berhasil dihapus');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal menghapus product: ' . $e->getMessage());
+        }
     }
 }
