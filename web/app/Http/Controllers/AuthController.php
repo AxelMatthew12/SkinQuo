@@ -24,75 +24,94 @@ class AuthController extends Controller
      * Proses login user.
      */
     public function login(Request $request)
-    {
-        // STEP 1: RATE LIMITING - Check if too many attempts
-        $throttleKey = 'login.' . $request->ip();
-        if (RateLimiter::tooManyAttempts($throttleKey, $max = 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            return back()->withErrors([
-                'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
-            ])->onlyInput('email');
-        }
+{
+    // STEP 1: RATE LIMITING - Check if too many attempts
+    $throttleKey = 'login.' . $request->ip();
 
-        // STEP 2: VALIDATE INPUT
-        $request->validate([
-            'email' => 'required|email|max:255',
-            'password' => 'required|string|min:8|max:255'
-        ], [
-            'email.required' => 'Please enter your email address.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.max' => 'Email address is too long (maximum 255 characters).',
-            'password.required' => 'Please enter your password.',
-            'password.min' => 'Password must be at least 8 characters.',
-            'password.max' => 'Password is too long (maximum 255 characters).',
-        ]);
+    if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        $seconds = RateLimiter::availableIn($throttleKey);
 
-        // STEP 3: AUTHENTICATE USING AUTH::ATTEMPT()
-        $credentials = [
-            'email' => $request->email,
-            'password' => $request->password
-        ];
-
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-            RateLimiter::hit($throttleKey);
-            return back()->withErrors([
-                'email' => 'The provided credentials are incorrect.',
-            ])->onlyInput('email');
-        }
-
-        // STEP 4: LOGIN SUCCESSFUL - REGENERATE SESSION
-        $request->session()->regenerate();
-        RateLimiter::clear($throttleKey);
-
-        // STEP 5: LOAD USER WITH ROLE RELATION (EAGER LOADING)
-        $user = User::with('role')->find(Auth::id());
-
-        if ($user->role === null) {
-            Log::warning('User logged in but role not found. User ID: ' . $user->user_id);
-            return redirect()->route('home')
-                ->with('warning', 'Role not found. Please contact an administrator.');
-        }
-
-        $roleName = $user->role->role_name ?? null;
-
-        try {
-            if ($roleName === 'admin') {
-                return redirect()->route('admin.dashboard')
-                    ->with('status', 'Welcome, Admin! Login successful.');
-            } elseif ($roleName === 'user') {
-                return redirect()->route('profile.show')
-                    ->with('status', 'Login successful. Welcome back to SkinQuo!');
-            } else {
-                Log::warning('Unknown role detected. Role name: ' . $roleName . ', User ID: ' . $user->user_id);
-                return redirect()->route('home')
-                    ->with('warning', 'Unknown role. Please contact an administrator.');
-            }
-        } catch (\Exception $e) {
-            Log::error('Redirect error after login: ' . $e->getMessage());
-            return redirect()->route('home')
-                ->with('status', 'Login successful!');
-        }
+        return back()->withErrors([
+            'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
+        ])->onlyInput('email');
     }
+
+    // STEP 2: VALIDATE INPUT
+    $request->validate([
+        'email' => 'required|email|max:255',
+        'password' => 'required|string|min:8|max:255'
+    ], [
+        'email.required' => 'Please enter your email address.',
+        'email.email' => 'Please enter a valid email address.',
+        'email.max' => 'Email address is too long (maximum 255 characters).',
+        'password.required' => 'Please enter your password.',
+        'password.min' => 'Password must be at least 8 characters.',
+        'password.max' => 'Password is too long (maximum 255 characters).',
+    ]);
+
+    // STEP 3: CHECK EMAIL EXISTS
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        RateLimiter::hit($throttleKey);
+
+        return back()->withErrors([
+            'email' => 'Your email is not registered. Please create an account first.',
+        ])->onlyInput('email');
+    }
+
+    // STEP 4: CHECK PASSWORD
+    if (!Hash::check($request->password, $user->password)) {
+        RateLimiter::hit($throttleKey);
+
+        return back()->withErrors([
+            'password' => 'Your password is incorrect.',
+        ])->onlyInput('email');
+    }
+
+    // STEP 5: LOGIN USER
+    Auth::login($user, $request->boolean('remember'));
+
+    $request->session()->regenerate();
+    RateLimiter::clear($throttleKey);
+
+    // STEP 6: LOAD USER WITH ROLE
+    $user = User::with('role')->find($user->user_id);
+
+    if ($user->role === null) {
+        Log::warning('User logged in but role not found. User ID: ' . $user->user_id);
+
+        return redirect()->route('home')
+            ->with('warning', 'Role not found. Please contact an administrator.');
+    }
+
+    $roleName = $user->role->role_name ?? null;
+
+    try {
+        if ($roleName === 'admin') {
+            return redirect()->route('admin.dashboard')
+                ->with('status', 'Welcome, Admin! Login successful.');
+        } elseif ($roleName === 'user') {
+            return redirect()->route('profile.show')
+                ->with('status', 'Login successful. Welcome back to SkinQuo!');
+        } else {
+            Log::warning(
+                'Unknown role detected. Role name: ' .
+                $roleName .
+                ', User ID: ' .
+                $user->user_id
+            );
+
+            return redirect()->route('home')
+                ->with('warning', 'Unknown role. Please contact an administrator.');
+        }
+    } catch (\Exception $e) {
+        Log::error('Redirect error after login: ' . $e->getMessage());
+
+        return redirect()->route('home')
+            ->with('status', 'Login successful!');
+    }
+}
 
     /**
      * Tampilkan form register.
