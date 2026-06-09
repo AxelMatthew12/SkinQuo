@@ -1,5 +1,1 @@
-[providers.php]
-webServer = "nginx"
 
-[phases.setup]
-aptPackages = ["postgresql-client"]
