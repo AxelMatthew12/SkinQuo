@@ -316,7 +316,7 @@
         overflow: hidden;
         text-decoration: none;
         border: 1.5px solid rgba(108, 78, 49, 0.08);
-        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), box-shadow 0.28s cubic-bezier(0.4,0,0.2,1);
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1);
         display: flex;
         flex-direction: column;
         position: relative;
@@ -324,7 +324,7 @@
     }
     .cat-product-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 18px 44px rgba(96, 63, 38, 0.16);
+        box-shadow: 0 16px 40px rgba(96, 63, 38, 0.18);
     }
 
     .cat-bestseller-badge {
@@ -344,7 +344,7 @@
 
     .cat-product-thumb {
         height: 220px;
-        background: linear-gradient(135deg, #f0e0cc, #e0c8a8);
+        background: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -366,13 +366,14 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        background: #FFDBB5;
     }
 
     .cat-product-cat {
         display: inline-block;
         background: transparent;
         color: #6C4E31;
-        border: 1.2px solid #E8D4C4;
+        border: 1.2px solid #6C4E31;
         border-radius: 20px;
         padding: 0.45rem 0.9rem;
         font-size: 0.64rem;

@@ -55,6 +55,112 @@ class ConsultationController extends Controller
         }
     }
 
+    private function generateSkinProfileChart($concerns, $topProduct = null)
+    {
+        $mapping = [
+            'Kulit Kering'         => 'Hydration',
+            'Dehidrasi'            => 'Hydration',
+            'Kulit Normal'         => 'Hydration',
+            'Kulit Berminyak'      => 'Sebum Control',
+            'Komedo'               => 'Sebum Control',
+            'Pori-Pori Besar'      => 'Sebum Control',
+            'Kulit Kombinasi'      => 'Sebum Control',
+            'Jerawat'              => 'Acne',
+            'Bekas Jerawat / Luka' => 'Acne',
+            'Kulit Sensitif'       => 'Soothing',
+            'Kemerahan / Iritasi'  => 'Soothing',
+            'Kulit Kusam'          => 'Brightening',
+            'Flek Hitam'           => 'Brightening',
+            'Kerutan / Penuaan'    => 'Anti-Aging'
+        ];
+
+        $userScores = [
+            'Hydration'     => 20,
+            'Sebum Control' => 20,
+            'Acne'          => 20,
+            'Soothing'      => 20,
+            'Brightening'   => 20,
+            'Anti-Aging'    => 20,
+        ];
+
+        foreach ($concerns as $concern) {
+            if (isset($mapping[$concern])) {
+                $userScores[$mapping[$concern]] = 90; 
+            }
+        }
+
+        $productScores = [
+            'Hydration'     => 20, 
+            'Sebum Control' => 20, 
+            'Acne'          => 20,
+            'Soothing'      => 20, 
+            'Brightening'   => 20, 
+            'Anti-Aging'    => 20,
+        ];
+
+        if ($topProduct) {
+            $kandunganDiminta = $topProduct['reasoning_meta']['kandungan_diminta'] ?? [];
+            $kandunganDisarankan = $topProduct['reasoning_meta']['kandungan_disarankan'] ?? [];
+            $matchedIngredients = array_merge($kandunganDiminta, $kandunganDisarankan);
+            
+            $ingMapping = [
+                'Hyaluronic Acid'   => 'Hydration', 
+                'Ceramide'          => 'Hydration', 
+                'Glycerin'          => 'Hydration',
+                'Salicylic Acid'    => 'Sebum Control', 
+                'Bha'               => 'Sebum Control', 
+                'Aha'               => 'Sebum Control', 
+                'Zinc'              => 'Sebum Control',
+                'Tea Tree'          => 'Acne', 
+                'Centella Asiatica' => 'Soothing', 
+                'Panthenol'         => 'Soothing', 
+                'Mugwort'           => 'Soothing',
+                'Vitamin C'         => 'Brightening', 
+                'Niacinamide'       => 'Brightening', 
+                'Alpha Arbutin'     => 'Brightening', 
+                'Licorice'          => 'Brightening',
+                'Retinol'           => 'Anti-Aging', 
+                'Peptide'           => 'Anti-Aging', 
+                'Collagen'          => 'Anti-Aging', 
+                'Bakuchiol'         => 'Anti-Aging'
+            ];
+
+            foreach ($matchedIngredients as $ing) {
+                foreach ($ingMapping as $key => $dim) {
+                    if (stripos($ing, $key) !== false) {
+                        $productScores[$dim] = 95; 
+                    }
+                }
+            }
+
+            if (count(array_unique($productScores)) === 1) {
+                foreach ($userScores as $dim => $val) {
+                    if ($val > 20) $productScores[$dim] = 85;
+                }
+            }
+        }
+
+        return [
+            'labels' => array_keys($userScores), 
+            'datasets' => [
+                [
+                    'label'           => 'Kebutuhan Kulitmu',
+                    'data'            => array_values($userScores),
+                    'backgroundColor' => 'rgba(205, 133, 63, 0.2)', 
+                    'borderColor'     => 'rgba(205, 133, 63, 1)',
+                    'borderWidth'     => 2
+                ],
+                [
+                    'label'           => 'Fokus Formula Produk',
+                    'data'            => array_values($productScores),
+                    'backgroundColor' => 'rgba(74, 85, 104, 0.15)', 
+                    'borderColor'     => 'rgba(74, 85, 104, 1)',
+                    'borderWidth'     => 1.5
+                ]
+            ]
+        ];
+    }
+
     public function sendConsultation(Request $request)
     {
         try {
@@ -72,7 +178,7 @@ class ConsultationController extends Controller
                 $cacheKey = 'guest_consultation_limit:' . $request->ip();
                 $requestCount = cache()->get($cacheKey, 0);
 
-                if ($requestCount >= 3) {
+                if ($requestCount >= 10) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Batas konsultasi gratis telah habis. Silakan Login!'
@@ -81,7 +187,6 @@ class ConsultationController extends Controller
                 cache()->put($cacheKey, $requestCount + 1, now()->endOfDay());
             }
 
-            // Tembak API Python HANYA dengan query dan harga_max
             $response = Http::timeout(120)->withHeaders([
                 'Content-Type' => 'application/json'
             ])->post($this->aiServiceUrl . '/api/recommend', [
@@ -89,11 +194,10 @@ class ConsultationController extends Controller
                 'harga_max' => $validated['harga_max'] ?? null
             ]);
 
-            // Deteksi Error Cerdas agar ketahuan apakah salah Python atau Laravel
             if ($response->failed()) {
                 $statusCode = $response->status();
-                $errorMsg = $statusCode === 422 ? 'Query ditolak oleh AI: ' . $response->body() : 'Gagal mendapatkan respons AI.';
-                Log::error("AI Service Error [$statusCode]: " . $response->body());
+                $errorMsg = $statusCode === 422 ? 'Query ditolak oleh SkinQuo: ' . $response->body() : 'Gagal mendapatkan respons.';
+                Log::error("System Service Error [$statusCode]: " . $response->body());
                 return response()->json(['success' => false, 'message' => $errorMsg], $statusCode >= 500 ? 500 : 422);
             }
 
@@ -108,41 +212,58 @@ class ConsultationController extends Controller
                 ], 422);
             }
 
+            $extractedBudget = $aiData['user_budget'] ?? ($validated['harga_max'] ?? null);
             $recommendations = $aiData['recommendations'] ?? [];
+
+            if (empty($recommendations)) {
+                $pesanPeringatan = $extractedBudget 
+                    ? "Waduh, belum ada produk yang sesuai dengan budget Rp " . number_format($extractedBudget, 0, ',', '.') . " untuk spesifikasi tersebut. Coba naikkan sedikit budget-nya atau ganti kata kuncinya, ya!"
+                    : "Maaf, kami belum menemukan produk yang spesifikasinya cocok dengan permintaanmu. Coba kurangi kata kunci agar lebih umum.";
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $pesanPeringatan
+                ], 422);
+            }
+
             $cleanedQuery    = $aiData['cleaned_query'] ?? '';
             $displayExplainability = $aiData['display_explainability'] ?? [];
 
-            $displayProducts    = $displayExplainability['Jenis Produk'] ?? [];
-            $displayIngredients = $displayExplainability['Kandungan Aktif'] ?? [];
+            // [SINKRONISASI AUDIT] Membaca key hasil penyesuaian arsitektur baru
+            $displayIngredientsExplicit = $displayExplainability['Kandungan yang Diminta Pengguna'] ?? [];
             $displaySkinTypes   = $displayExplainability['Jenis/Tipe Kulit'] ?? [];
             $displayProblems    = $displayExplainability['Keluhan Kulit'] ?? [];
 
             $concerns = array_unique(array_merge($displaySkinTypes, $displayProblems));
             
+            $topProduct = $recommendations[0] ?? null;
+            $chartData  = $this->generateSkinProfileChart($concerns, $topProduct);
+
             $ingredientResultPayload = [
                 'original_query'         => $originalQuery,
                 'cleaned_query'          => $cleanedQuery,
                 'display_explainability' => $displayExplainability, 
                 'all_products'           => $recommendations,
-                'related_articles'       => $aiData['related_articles'] ?? []
+                'related_articles'       => $aiData['related_articles'] ?? [],
+                'skin_profile_chart'     => $chartData 
             ];
 
             $consultationId = null;
 
             if (!$isGuest) {
-                // [FIX] Murni menggunakan Skema Database BARU (Data Science Ready)
+                // [FIXED] Mengisi kolom skin_concern (String) dan extracted_concerns (JSON) agar tidak NULL lagi
                 $consultationId = DB::table('consultations')->insertGetId([
                     'user_id'               => $userId,
+                    'skin_concern'          => empty($concerns) ? 'Tidak spesifik' : implode(', ', $concerns),
                     'raw_query'             => $originalQuery,
                     'cleaned_query'         => $cleanedQuery,
                     'extracted_concerns'    => json_encode($concerns),
-                    'extracted_ingredients' => json_encode($displayIngredients),
-                    'user_budget'           => $validated['harga_max'] ?? null,
+                    'extracted_ingredients' => json_encode($displayIngredientsExplicit),
+                    'user_budget'           => $extractedBudget, 
                     'ai_response'           => json_encode($ingredientResultPayload),
                     'created_at'            => now()
                 ]);
 
-                // Bulk Insert Top 5
                 $detailData = [];
                 foreach ($recommendations as $item) {
                     $detailData[] = [
@@ -150,7 +271,7 @@ class ConsultationController extends Controller
                         'product_id'       => $item['product_id'] ?? 0,
                         'rank_position'    => $item['rank'] ?? 1,
                         'similarity_score' => $item['similarity_score'] ?? 0,
-                        'reasoning_code'   => $item['reasoning_meta']['reason_code'] ?? 'SAW_DYNAMIC',
+                        'reasoning_code'   => $item['reasoning_meta']['reason_code'] ?? 'SAW_RATIO_SCORING',
                         'created_at'       => now()
                     ];
                 }
@@ -186,19 +307,15 @@ class ConsultationController extends Controller
             $userId = Auth::id();
             if (!$userId) return response()->json(['success' => true, 'data' => []]);
 
-            // 1. Ambil data induk dari tabel 'consultations' (bukan consultation_result)
             $history = DB::table('consultations')
                 ->where('user_id', $userId)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             $formattedHistory = $history->map(function ($item) {
-                // 2. Mapping JSON response yang ada di parent table
-                // (Terdapat fallback menggunakan null coalescing operator '??' untuk transisi dari db lama)
-                $item->skin_concern = json_decode($item->extracted_concerns ?? $item->skin_concern ?? '[]');
+                $item->skin_concern = json_decode($item->extracted_concerns ?? '[]');
                 $item->ingredient_result = json_decode($item->ai_response ?? $item->ingredient_result ?? '{}');
 
-                // 3. Ambil data relasi dari tabel baru 'consultation_results' berdasarkan ID 
                 $item->product_results = DB::table('consultation_results')
                     ->where('consultation_id', $item->id)
                     ->orderBy('rank_position', 'asc')
@@ -209,15 +326,14 @@ class ConsultationController extends Controller
 
             return response()->json(['success' => true, 'data' => $formattedHistory]);
         } catch (\Exception $e) {
-            // Tambahkan logger agar lebih mudah di-debug jika terjadi error relasi
-            \Illuminate\Support\Facades\Log::error('Get History Error: ' . $e->getMessage());
+            Log::error('Get History Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Gagal memuat riwayat.'], 500);
         }
     }
 
     public function result($id)
     {
-        if (is_string($id) && str_starts_with($id, 'guest_')) {
+        if (is_string($id) && Str::startsWith($id, 'guest_')) {
             if (!session()->has($id)) abort(404, 'Sesi tamu kedaluwarsa.');
             $sessionData = session()->get($id);
             
@@ -247,7 +363,8 @@ class ConsultationController extends Controller
             $query = trim($validated['query']);
             $allKeywords = DB::table('validation_keywords')->pluck('keyword')->map(fn($k) => mb_strtolower(trim($k)))->toArray();
             $queryLower   = mb_strtolower($query);
-            $foundKeyword = collect($allKeywords)->first(fn($kw) => str_contains($queryLower, $kw));
+            
+            $foundKeyword = collect($allKeywords)->first(fn($kw) => Str::contains($queryLower, $kw));
 
             if (!$foundKeyword) {
                 return response()->json([

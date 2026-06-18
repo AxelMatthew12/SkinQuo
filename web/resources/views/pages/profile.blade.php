@@ -64,7 +64,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.25rem;
-        align-items: stretch;
+        align-items: start;
     }
 
     @media (max-width: 820px) {
@@ -77,6 +77,8 @@
         padding: 1.75rem 1.85rem 2.25rem;
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
+        min-height: 0;
     }
 
     .pf-card-history {
@@ -86,6 +88,11 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
+        overflow: hidden;
+    }
+
+    @media (max-width: 820px) {
+        .pf-card-history { max-height: none !important; }
     }
 
     .pf-card-title {
@@ -591,6 +598,22 @@
         line-height: 1.5;
     }
 
+    /* Strength items di modal */
+    .pf-strength-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .pf-strength-item:last-child { margin-bottom: 0; }
+
+    .pf-strength-icon {
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
     @media (max-width: 620px) {
         .pf-inner { padding: 0 1.1rem; }
         .pf-hero { gap: 1rem; }
@@ -607,7 +630,7 @@
 @section('content')
 <div class="pf-page">
 <div class="pf-inner">
-
+    
     {{-- HERO --}}
     <div class="pf-hero">
         @if($user->sex && $user->sex->icon_image_url)
@@ -621,7 +644,7 @@
     <div class="pf-layout">
 
         {{-- LEFT: Personal Info --}}
-        <div class="pf-card">
+        <div class="pf-card" id="pfPersonalCard">
             <div class="pf-card-title"><span>Personal Information</span></div>
 
             @if(session('status'))
@@ -660,7 +683,7 @@
         </div>
 
        {{-- RIGHT: History Consultation (scrollable) --}}
-        <div class="pf-card-history">
+        <div class="pf-card-history" id="pfHistoryCard">
             <div class="pf-card-title"><span>History Consultation</span></div>
 
             @if(($consultations ?? collect())->isEmpty())
@@ -746,10 +769,10 @@
         <div class="pf-diag-card">
             <span class="pf-diag-badge">Hasil Diagnosis</span>
             <div class="pf-concern-tags" id="modalConcernTags"></div>
-            <div class="pf-diag-section-label">REKOMENDASI PRODUK</div>
-            <div class="pf-diag-section-text" id="modalIngredients">—</div>
-            <div class="pf-diag-section-label">CATATAN PENTING</div>
-            <div class="pf-diag-section-text" id="modalPrecaution">—</div>
+            <div class="pf-diag-section-label">MENGAPA DIREKOMENDASIKAN</div>
+            <div class="pf-diag-section-text" id="modalReasonText">—</div>
+            <div class="pf-diag-section-label">KEUNGGULAN PRODUK INI</div>
+            <div id="modalStrengths"></div>
         </div>
 
         <div class="pf-recs-header">
@@ -778,6 +801,50 @@ $consultationData = ($consultations ?? collect())->map(function ($c) {
 
 <script>
 const consultationsData = @json($consultationData);
+
+function escapeModalHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function buildModalStrengths(prod, displaySkinTypes, displayProblems) {
+    var meta = prod.reasoning_meta || {};
+    var matchCats = meta.matched_categories || [];
+    var matchIngs = meta.matched_ingredients || [];
+    var strengths = [];
+
+    if (matchCats.length) {
+        strengths.push({ icon: '📦', text: 'Kategori produk sesuai — ' + matchCats.join(', ') });
+    }
+    if (matchIngs.length) {
+        strengths.push({ icon: '🧪', text: 'Mengandung bahan aktif yang dicari — ' + matchIngs.join(', ') });
+    }
+
+    var concerns = [];
+    var seen = {};
+    (displaySkinTypes || []).concat(displayProblems || []).forEach(function(c) {
+        if (!seen[c]) { seen[c] = true; concerns.push(c); }
+    });
+    if (concerns.length) {
+        strengths.push({ icon: '✅', text: 'Formulasi efektif untuk ' + concerns.join(', ') });
+    }
+
+    var sawBreak = meta.saw_breakdown_weighted || {};
+    var scoreDetails = meta.scoring_details || {};
+    var hasTextMatch = (sawBreak.c1_textual !== undefined ? sawBreak.c1_textual : (scoreDetails.raw_cbf_cosine || 0)) > 0;
+
+    if (hasTextMatch && strengths.length === 0) {
+        strengths.push({ icon: '🔍', text: 'Deskripsi produk paling sesuai dengan pencarianmu' });
+    }
+    if (strengths.length === 0) {
+        strengths.push({ icon: '⭐', text: 'Produk dengan skor algoritma tertinggi dari database' });
+    }
+
+    return strengths;
+}
 
 function openDetailModal(id) {
     var c = consultationsData.find(function(x){
@@ -831,34 +898,32 @@ function openDetailModal(id) {
     // Ingredient result
     var ir = c.ingredient_result || {};
 
-    var products =
-        (ir.all_products || []).slice(0, 6);
+    var products = (ir.all_products || []).slice(0, 6);
 
-    // Dapatkan data kandungan aktif (Bisa dari properti constraints lama, atau display_explainability yang baru)
-    var constraints = ir.constraints || [];
-    if(constraints.length === 0 && ir.display_explainability && ir.display_explainability['Kandungan Aktif']) {
-        constraints = ir.display_explainability['Kandungan Aktif'];
+    var displaySkinTypes = (ir.display_explainability && ir.display_explainability['Jenis/Tipe Kulit']) || [];
+    var displayProblems  = (ir.display_explainability && ir.display_explainability['Keluhan Kulit']) || [];
+
+    // MENGAPA DIREKOMENDASIKAN — ambil dari reasoning_text produk pertama
+    var topProduct = products.length > 0 ? products[0] : null;
+    var reasonText = (topProduct && topProduct.reasoning_meta && topProduct.reasoning_meta.reasoning_text)
+        ? topProduct.reasoning_meta.reasoning_text
+        : '—';
+    document.getElementById('modalReasonText').textContent = reasonText;
+
+    // KEUNGGULAN PRODUK INI — pakai logika buildStrengths sama seperti halaman hasil
+    var strengthsEl = document.getElementById('modalStrengths');
+    strengthsEl.innerHTML = '';
+    if (topProduct) {
+        var strengths = buildModalStrengths(topProduct, displaySkinTypes, displayProblems);
+        strengthsEl.innerHTML = strengths.map(function(s) {
+            return '<div class="pf-strength-item">'
+                + '<span class="pf-strength-icon">' + s.icon + '</span>'
+                + '<span class="pf-diag-section-text" style="margin:0;">' + escapeModalHtml(s.text) + '</span>'
+                + '</div>';
+        }).join('');
+    } else {
+        strengthsEl.innerHTML = '<div class="pf-diag-section-text">—</div>';
     }
-
-    document.getElementById('modalIngredients').textContent =
-        constraints.length
-            ? 'Bahan Aktif yang Disarankan: ' + constraints.join(', ')
-            : 'Rekomendasi produk berdasarkan kondisi kulit Anda.';
-
-    // Precaution
-    var precaution = '—';
-
-    if (
-        products.length > 0 &&
-        products[0].reasoning_meta &&
-        products[0].reasoning_meta.precaution_notes
-    ) {
-        precaution =
-            products[0].reasoning_meta.precaution_notes.join(' ');
-    }
-
-    document.getElementById('modalPrecaution').textContent =
-        precaution;
 
     document.getElementById('modalRecsCount').textContent =
         products.length + ' ITEMS CURATED';
@@ -970,6 +1035,31 @@ document.addEventListener('keydown', function(e){
         closeDetailModal();
     }
 });
+
+// ===== Sync History Consultation card height with Personal Info card =====
+(function () {
+    var personalCard = document.getElementById('pfPersonalCard');
+    var historyCard = document.getElementById('pfHistoryCard');
+
+    if (!personalCard || !historyCard) return;
+
+    function syncHeight() {
+        if (window.innerWidth <= 820) {
+            historyCard.style.maxHeight = '';
+            return;
+        }
+        var h = personalCard.offsetHeight;
+        historyCard.style.maxHeight = h + 'px';
+    }
+
+    syncHeight();
+    window.addEventListener('resize', syncHeight);
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(syncHeight);
+    }
+    window.addEventListener('load', syncHeight);
+})();
 </script>
 
 @endsection
