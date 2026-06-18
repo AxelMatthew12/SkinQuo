@@ -10,9 +10,14 @@
 <style>
     :root {
         --cream: #FFEAC5;
+<<<<<<< HEAD
         --cream-light: #FFF5E8;
         --cream-bg: #F2DFC8;
         --peach: #FFDBB5;
+=======
+        --cream-light: #FAF3E8;
+        --cream-bg: #EDE0CE;
+>>>>>>> 08bdb1ee30c315a27c3440f25ae3896a1ee774b6
         --brown: #6C4E31;
         --dark-brown: #603F26;
         --accent: #C17F4A;
