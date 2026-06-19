@@ -6,7 +6,7 @@ use App\Models\Article;
 use App\Models\Product;
 use App\Models\Feedback;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // WAJIB DITAMBAHKAN UNTUK CEK LOGIN
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -22,8 +22,6 @@ class HomeController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
             
-            // Mengecek apakah user adalah admin (role_id 1 atau role_name 'admin')
-            // Menyesuaikan dengan logika di AuthController kamu
             if ($user->role_id == 1 || ($user->role && $user->role->role_name === 'admin')) {
                 return redirect()->route('admin.dashboard');
             }
@@ -33,30 +31,27 @@ class HomeController extends Controller
         // JIKA BUKAN ADMIN / BELUM LOGIN, TAMPILKAN HOMEPAGE BIASA
         // =========================================================
         
-        // Ambil 8 artikel terbaru yang dipublikasikan
-        $articles = Article::where('is_published', true)
+        // Menggunakan scope 'published' buatan temanmu yang sudah kita amankan
+        $articles = Article::published()
                             ->latest('created_at')
                             ->take(8)
                             ->get();
 
         // Ambil feedback dengan rating >= 4 untuk Community Voices section
-        // Order by latest first, take 3
+        // Menggunakan whereRaw agar aman dari bug konversi integer PDO di PostgreSQL
         $communityVoices = Feedback::with('user')
             ->whereNotNull('text')
             ->where('rating', '>=', 4)
-            ->where('is_reviewed', true)
+            ->whereRaw('is_reviewed = true')
             ->latest('id')
             ->take(3)
             ->get();
 
         // Ambil 3 produk best seller
-        // TEMPORARY: Ambil 3 produk dengan harga tertinggi sebagai proxy untuk "best seller"
-        // TODO: Setelah migration, gunakan kolom is_best_seller dan sold_count
         $bestSellers = Product::orderByDesc('harga_max')
                               ->take(3)
                               ->get();
 
-        // Jika tidak ada produk, tampilkan placeholder di view
         if ($bestSellers->isEmpty()) {
             $bestSellers = collect([]);
         }
