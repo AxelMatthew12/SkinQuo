@@ -36,10 +36,10 @@ class Article extends Model
 
     /**
      * Scope: Get published articles only
+     * Using whereIn for cross-database compatibility (MySQL & PostgreSQL)
      */
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->whereIn('is_published', [true, 1]);
     }
 }
-

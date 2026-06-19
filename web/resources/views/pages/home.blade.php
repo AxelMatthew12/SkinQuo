@@ -221,7 +221,7 @@
     ═══════════════════════════════════════════ */
     .bestseller-section {
         background: var(--cream);
-        padding: 5rem 2rem;
+        padding: 5rem 2rem 2rem;
     }
     .product-grid {
         display: grid;
@@ -274,7 +274,7 @@
     ═══════════════════════════════════════════ */
     .reflections-section {
         background: var(--cream);
-        padding: 5rem 2rem 4rem;
+        padding: 2rem 2rem 4rem;
     }
     .testimonial-grid {
         display: grid;
