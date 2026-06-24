@@ -1,25 +1,38 @@
 import { test, expect } from '@playwright/test';
 
 test('update product admin', async ({ page }) => {
-  await page.goto('http://127.0.0.1:8000/');
+  // 1. Login
+  await page.goto('/');
+  await page.waitForLoadState('domcontentloaded');
+
   await page.getByRole('link', { name: 'Login' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).press('CapsLock');
-  await page.getByRole('textbox', { name: 'Email address' }).fill('A');
-  await page.getByRole('textbox', { name: 'Email address' }).press('CapsLock');
+  await page.waitForLoadState('domcontentloaded');
+
   await page.getByRole('textbox', { name: 'Email address' }).fill('admin@skinquo.com');
-  await page.getByRole('textbox', { name: 'Password' }).click();
-  await page.getByRole('textbox', { name: 'Password' }).fill('#');
-  await page.getByRole('textbox', { name: 'Password' }).press('CapsLock');
-  await page.getByRole('textbox', { name: 'Password' }).fill('#A');
-  await page.getByRole('textbox', { name: 'Password' }).press('CapsLock');
   await page.getByRole('textbox', { name: 'Password' }).fill('#Admin0101');
-  await page.getByRole('button').first().click();
   await page.getByRole('button', { name: 'Sign In' }).click();
-  await page.goto('http://127.0.0.1:8000/admin/dashboard');
-  await page.getByRole('link', { name: ' Inventory Inventory' }).click();
+
+  await page.waitForURL('**/admin/**', { timeout: 30000 });
+
+  // 2. Langsung ke inventory
+  await page.goto('/admin/inventory');
+  await page.waitForLoadState('domcontentloaded');
+
+  // 3. Klik Edit Product
+  await page.waitForSelector('[title="Edit Product"]', { state: 'visible', timeout: 15000 });
   await page.getByTitle('Edit Product').first().click();
+  await page.waitForLoadState('domcontentloaded');
+
+  // 4. Pilih kategori Face Wash
+  await page.waitForSelector('select', { state: 'visible', timeout: 15000 });
   await page.getByRole('combobox').selectOption('Face Wash');
-  await page.getByRole('button', { name: ' Save Changes' }).click();
-  await page.goto('http://127.0.0.1:8000/admin/inventory');
+
+  // 5. Save Changes
+  await page.waitForSelector('button:has-text("Save Changes")', { state: 'visible', timeout: 15000 });
+  await page.getByRole('button', { name: ' Save Changes' }).click();
+  await page.waitForLoadState('domcontentloaded');
+
+  // 6. Kembali ke inventory
+  await page.goto('/admin/inventory');
+  await page.waitForLoadState('domcontentloaded');
 });
