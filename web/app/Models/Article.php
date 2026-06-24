@@ -36,10 +36,11 @@ class Article extends Model
 
     /**
      * Scope: Get published articles only
+     * Menggunakan whereRaw agar aman dari bug konversi integer saat memakai
+     * fitur PDO emulate prepares di PostgreSQL
      */
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->whereRaw('is_published = true');
     }
 }
-

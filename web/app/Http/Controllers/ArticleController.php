@@ -25,15 +25,18 @@ class ArticleController extends Controller
                 ->published()
                 ->orderBy('created_at', 'desc');
 
-            // Apply search filter (title, slug, content, category, tags) - use LIKE for cross-database compatibility
+            // Apply search filter (title, slug, content, category, tags)
+            // Using LIKE (case-insensitive on MySQL, use ILIKE only on PostgreSQL)
             if (!empty($searchQuery)) {
-                $articlesQuery->where(function ($q) use ($searchQuery) {
-                    $q->where('title', 'ILIKE', "%{$searchQuery}%")
-                      ->orWhere('slug', 'ILIKE', "%{$searchQuery}%")
-                      ->orWhere('content', 'ILIKE', "%{$searchQuery}%")
-                      ->orWhere('category', 'ILIKE', "%{$searchQuery}%")
-                      ->orWhereHas('tags', function ($tagQuery) use ($searchQuery) {
-                          $tagQuery->where('name', 'ILIKE', "%{$searchQuery}%");
+                $driver = \DB::getDriverName();
+                $op = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
+                $articlesQuery->where(function ($q) use ($searchQuery, $op) {
+                    $q->where('title', $op, "%{$searchQuery}%")
+                      ->orWhere('slug', $op, "%{$searchQuery}%")
+                      ->orWhere('content', $op, "%{$searchQuery}%")
+                      ->orWhere('category', $op, "%{$searchQuery}%")
+                      ->orWhereHas('tags', function ($tagQuery) use ($searchQuery, $op) {
+                          $tagQuery->where('name', $op, "%{$searchQuery}%");
                       });
                 });
             }
@@ -143,5 +146,3 @@ class ArticleController extends Controller
         }
     }
 }
-
-
