@@ -32,6 +32,12 @@
     </a>
 @empty
     <div class="cat-empty">
-        <p style="font-size: 0.95rem; font-weight: 500; color: rgba(96,63,38,0.55);">Produk tidak tersedia.</p>
+        <div class="cat-empty-icon">🔍</div>
+        <p style="font-size:1rem; font-weight:600; color:rgba(96,63,38,0.6); margin-bottom:0.5rem;">
+            Produk tidak ditemukan
+        </p>
+        <p style="font-size:0.85rem; color:rgba(96,63,38,0.4);">
+            Coba ubah filter atau kata kunci pencarian
+        </p>
     </div>
 @endforelse
